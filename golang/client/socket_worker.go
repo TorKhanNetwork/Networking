@@ -199,9 +199,6 @@ func (socketWorker *SocketWorker) onConnectionProtocolDataReceived(data string) 
 		socketWorker.authenticated = connected
 		socketWorker.connectionProtocol = !connected
 		// TODO event
-		if connected {
-			socketWorker.SendCommand("blou")
-		}
 		return connected
 	} else {
 		return false
