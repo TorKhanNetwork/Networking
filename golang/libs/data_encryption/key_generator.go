@@ -10,9 +10,9 @@ import (
 type KeyGenerator struct {
 	asyncKeySize int
 	syncKeySize  int
-	secretKey    []byte
+	SecretKey    []byte
 	secretKeyIv  []byte
-	publicKey    rsa.PublicKey
+	PublicKey    rsa.PublicKey
 	privateKey   rsa.PrivateKey
 }
 
@@ -20,20 +20,20 @@ func NewGenerator() KeyGenerator {
 	return KeyGenerator{
 		asyncKeySize: 2048,
 		syncKeySize:  16,
-		secretKey:    nil,
+		SecretKey:    nil,
 		secretKeyIv:  nil,
 	}
 }
 
-func (keyGenerator *KeyGenerator) generateKeys(sync, async bool) {
+func (keyGenerator *KeyGenerator) GenerateKeys(sync, async bool) {
 	if sync {
 		keyGenerator.secretKeyIv = make([]byte, 16)
 		if _, err := rand.Read(keyGenerator.secretKeyIv); err != nil {
 			golog.Fatal("Unable to generate secretKeyIv\n", err)
 		}
 
-		keyGenerator.secretKey = make([]byte, keyGenerator.syncKeySize)
-		if _, err := rand.Read(keyGenerator.secretKey); err != nil {
+		keyGenerator.SecretKey = make([]byte, keyGenerator.syncKeySize)
+		if _, err := rand.Read(keyGenerator.SecretKey); err != nil {
 			golog.Fatal("Unable to generate secretKey\n", err)
 		}
 	}
@@ -45,12 +45,12 @@ func (keyGenerator *KeyGenerator) generateKeys(sync, async bool) {
 		publicKey := &privateKey.PublicKey
 
 		keyGenerator.privateKey = *privateKey
-		keyGenerator.publicKey = *publicKey
+		keyGenerator.PublicKey = *publicKey
 	}
 }
 
 func (keyGenerator KeyGenerator) GetSyncKeyInfo() (info []byte) {
 	info = append(info, keyGenerator.secretKeyIv...)
-	info = append(info, keyGenerator.secretKey...)
+	info = append(info, keyGenerator.SecretKey...)
 	return
 }
