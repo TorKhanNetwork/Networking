@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/TorkhanNetwork/Networking/golang/events_system"
 	"github.com/kataras/golog"
 )
 
@@ -10,6 +11,7 @@ type Client struct {
 	Name             string
 	MacAddress       string
 	SocketWorkerList []SocketWorker
+	EventsManager    events_system.EventsManager
 	exit             chan struct{}
 	count            int
 }
@@ -23,6 +25,7 @@ func NewClient(name string) Client {
 		Name:             name,
 		MacAddress:       macAddress,
 		SocketWorkerList: make([]SocketWorker, 0),
+		EventsManager:    events_system.NewEventsManager(),
 		exit:             make(chan struct{}),
 		count:            0,
 	}

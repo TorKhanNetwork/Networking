@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TorkhanNetwork/Networking/golang/client/events"
 	"github.com/TorkhanNetwork/Networking/golang/data_encryption"
 	"github.com/google/uuid"
 	"github.com/kataras/golog"
@@ -107,7 +108,7 @@ func (socketWorker *SocketWorker) handleServerSocket() {
 			}
 		}
 	}
-
+	socketWorker.client.EventsManager.CallEvent(events.NewServerSocketClosedEvent(socketWorker, socketWorker.connection))
 }
 
 func (socketWorker *SocketWorker) onLineRead(line string) {
@@ -148,7 +149,13 @@ func (socketWorker *SocketWorker) onDataReceived(data []string, encrypted bool) 
 		golog.Debug(socketWorker.GetName() + " - Data received (encrypted=" + strconv.FormatBool(encrypted) + ", uuid=" + msgUUID.String() + ") : " + data[0])
 	}
 
-	// TODO event
+	var e interface{}
+	if encrypted {
+		e = events.NewEncryptedDataReceivedEvent(socketWorker, data[1], data[0])
+	} else {
+		e = events.NewRawDataReceivedEvent(socketWorker, data[0])
+	}
+	socketWorker.client.EventsManager.CallEvent(e)
 
 	if socketWorker.connectionProtocol {
 		if !socketWorker.onConnectionProtocolDataReceived(data[0]) {
@@ -161,7 +168,8 @@ func (socketWorker *SocketWorker) onDataReceived(data []string, encrypted bool) 
 
 func (socketWorker *SocketWorker) onCommandReceived(command string, msgUUID uuid.UUID, encrypted bool) {
 	golog.Debug(socketWorker.GetName() + " - Command Received (encrypted=" + strconv.FormatBool(encrypted) + ", uuid=" + msgUUID.String() + ") : " + command)
-	// TODO Event
+	event := events.NewCommandReceivedEvent(socketWorker, command, socketWorker.commandPrefix, socketWorker.requestSeparator)
+	socketWorker.client.EventsManager.CallEvent(event)
 }
 
 func (socketWorker *SocketWorker) startConnectionProtocol() {
@@ -191,14 +199,16 @@ func (socketWorker *SocketWorker) onConnectionProtocolDataReceived(data string) 
 		}
 		socketWorker.SendData("secretKey:"+secretKey, uuid.NullUUID{}, false)
 	} else if strings.HasPrefix(data, "separator:") {
-		socketWorker.requestSeparator = data[9:]
+		socketWorker.requestSeparator = data[10:]
 	} else if strings.HasPrefix(data, "commandPrefix:") {
 		socketWorker.commandPrefix = data[14:]
 	} else if strings.HasPrefix(data, "connected:") {
 		connected := strings.ToLower(data[10:]) == "true"
 		socketWorker.authenticated = connected
 		socketWorker.connectionProtocol = !connected
-		// TODO event
+		if connected {
+			socketWorker.client.EventsManager.CallEvent(events.NewConnectionProtocolSuccessEvent(socketWorker))
+		}
 		return connected
 	} else {
 		return false

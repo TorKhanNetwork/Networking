@@ -4,4 +4,5 @@ use (
 	./golang/client
 	./golang/server
 	./golang/libs/data_encryption
+	./golang/libs/events_system
 )
