@@ -21,12 +21,12 @@ func PKCS5Trimming(encrypt []byte) []byte {
 	return encrypt[:len(encrypt)-int(padding)]
 }
 
-func EncryptSecretKey(keyGenerator KeyGenerator) (string, error) {
+func EncryptSecretKey(keyGenerator KeysGenerator) (string, error) {
 	cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, &keyGenerator.PublicKey, keyGenerator.GetSyncKeyInfo())
 	return base64.StdEncoding.EncodeToString(cipherText), err
 }
 
-func DecryptSecretKey(data string, keyGenerator *KeyGenerator) (err error) {
+func DecryptSecretKey(data string, keyGenerator *KeysGenerator) (err error) {
 	cipherData, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
 		return
@@ -40,7 +40,7 @@ func DecryptSecretKey(data string, keyGenerator *KeyGenerator) (err error) {
 	return
 }
 
-func Encrypt(data string, keyGenerator KeyGenerator) (cipherText string, err error) {
+func Encrypt(data string, keyGenerator KeysGenerator) (cipherText string, err error) {
 	block, err := aes.NewCipher(keyGenerator.SecretKey)
 	if err != nil {
 		return
@@ -56,7 +56,7 @@ func Encrypt(data string, keyGenerator KeyGenerator) (cipherText string, err err
 	return
 }
 
-func Decrypt(data string, keyGenerator KeyGenerator) (plainText string, err error) {
+func Decrypt(data string, keyGenerator KeysGenerator) (plainText string, err error) {
 	block, err := aes.NewCipher(keyGenerator.SecretKey)
 	if err != nil {
 		return

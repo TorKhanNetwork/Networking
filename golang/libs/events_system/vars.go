@@ -6,11 +6,6 @@ type Event interface {
 type Listener interface {
 }
 
-type Cancellable interface {
-	IsCancelled() bool
-	SetCancelled(bool)
-}
-
 type EventExecutor func(Listener, Event)
 
 type EventPriority int

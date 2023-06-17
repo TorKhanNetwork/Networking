@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TorkhanNetwork/Networking/golang/client/events"
 	"github.com/TorkhanNetwork/Networking/golang/data_encryption"
+	"github.com/TorkhanNetwork/Networking/golang/events_system"
 	"github.com/google/uuid"
 	"github.com/kataras/golog"
 )
@@ -17,22 +17,22 @@ const INPUT_BUFFER_SIZE = 65536
 
 type SocketWorker struct {
 	Id                                           int
-	client                                       Client
+	client                                       *Client
 	targetIp, commandPrefix, requestSeparator    string
 	targetPort                                   int
-	connection                                   net.TCPConn
+	connection                                   *net.TCPConn
 	connected, authenticated, connectionProtocol bool
-	keyGenerator                                 data_encryption.KeyGenerator
+	keysGenerator                                data_encryption.KeysGenerator
 	quitChan                                     chan bool
 }
 
-func NewSocketWorker(id int, client Client, targetIp string, targetPort int) SocketWorker {
+func NewSocketWorker(id int, client *Client, targetIp string, targetPort int) SocketWorker {
 	return SocketWorker{
-		Id:           id,
-		client:       client,
-		targetIp:     targetIp,
-		targetPort:   targetPort,
-		keyGenerator: data_encryption.NewGenerator(),
+		Id:            id,
+		client:        client,
+		targetIp:      targetIp,
+		targetPort:    targetPort,
+		keysGenerator: data_encryption.NewGenerator(),
 	}
 }
 
@@ -51,7 +51,7 @@ func (socketWorker *SocketWorker) StartWorker() {
 
 func (socketWorker *SocketWorker) StopWorker() {
 	if socketWorker.connected {
-		socketWorker.SendCommand("disconnect")
+		socketWorker.SendData("disconnect", uuid.NullUUID{}, socketWorker.authenticated)
 		socketWorker.quitChan <- true
 	}
 }
@@ -72,7 +72,7 @@ func (socketWorker *SocketWorker) ConnectSocket() error {
 		return errors.New(socketWorker.GetName() + " - Unable to connect the socket")
 	}
 	connection.SetDeadline(time.Time{})
-	socketWorker.connection = *connection
+	socketWorker.connection = connection
 	socketWorker.connected = true
 	return nil
 }
@@ -108,13 +108,14 @@ func (socketWorker *SocketWorker) handleServerSocket() {
 			}
 		}
 	}
-	socketWorker.client.EventsManager.CallEvent(events.NewServerSocketClosedEvent(socketWorker, socketWorker.connection))
+	var e interface{} = NewServerDisconnectEvent(socketWorker)
+	socketWorker.client.EventsManager.CallEvent((*events_system.Event)(&e))
 }
 
 func (socketWorker *SocketWorker) onLineRead(line string) {
 	line = strings.TrimSpace(line)
 	if line != "" {
-		if decryptedData, err := data_encryption.Decrypt(line, socketWorker.keyGenerator); err == nil {
+		if decryptedData, err := data_encryption.Decrypt(line, socketWorker.keysGenerator); err == nil {
 			socketWorker.onDataReceived([]string{decryptedData, line}, true)
 		} else {
 			socketWorker.onDataReceived([]string{line}, false)
@@ -151,11 +152,11 @@ func (socketWorker *SocketWorker) onDataReceived(data []string, encrypted bool) 
 
 	var e interface{}
 	if encrypted {
-		e = events.NewEncryptedDataReceivedEvent(socketWorker, data[1], data[0])
+		e = NewEncryptedDataReceivedEvent(socketWorker, data[1], data[0])
 	} else {
-		e = events.NewRawDataReceivedEvent(socketWorker, data[0])
+		e = NewRawDataReceivedEvent(socketWorker, data[0])
 	}
-	socketWorker.client.EventsManager.CallEvent(e)
+	socketWorker.client.EventsManager.CallEvent((*events_system.Event)(&e))
 
 	if socketWorker.connectionProtocol {
 		if !socketWorker.onConnectionProtocolDataReceived(data[0]) {
@@ -168,8 +169,8 @@ func (socketWorker *SocketWorker) onDataReceived(data []string, encrypted bool) 
 
 func (socketWorker *SocketWorker) onCommandReceived(command string, msgUUID uuid.UUID, encrypted bool) {
 	golog.Debug(socketWorker.GetName() + " - Command Received (encrypted=" + strconv.FormatBool(encrypted) + ", uuid=" + msgUUID.String() + ") : " + command)
-	event := events.NewCommandReceivedEvent(socketWorker, command, socketWorker.commandPrefix, socketWorker.requestSeparator)
-	socketWorker.client.EventsManager.CallEvent(event)
+	var event interface{} = NewCommandReceivedEvent(socketWorker, command, socketWorker.commandPrefix, socketWorker.requestSeparator)
+	socketWorker.client.EventsManager.CallEvent((*events_system.Event)(&event))
 }
 
 func (socketWorker *SocketWorker) startConnectionProtocol() {
@@ -190,9 +191,9 @@ func (socketWorker *SocketWorker) onConnectionProtocolDataReceived(data string) 
 			golog.Error(socketWorker.GetName()+" - Failed to parse server public key\n", err)
 			return false
 		}
-		socketWorker.keyGenerator.PublicKey = *pub
-		socketWorker.keyGenerator.GenerateKeys(true, false)
-		secretKey, err := data_encryption.EncryptSecretKey(socketWorker.keyGenerator)
+		socketWorker.keysGenerator.PublicKey = *pub
+		socketWorker.keysGenerator.GenerateKeys(true, false)
+		secretKey, err := data_encryption.EncryptSecretKey(socketWorker.keysGenerator)
 		if err != nil {
 			golog.Error("Unable to encrypt secret key\n", err)
 			return false
@@ -207,7 +208,8 @@ func (socketWorker *SocketWorker) onConnectionProtocolDataReceived(data string) 
 		socketWorker.authenticated = connected
 		socketWorker.connectionProtocol = !connected
 		if connected {
-			socketWorker.client.EventsManager.CallEvent(events.NewConnectionProtocolSuccessEvent(socketWorker))
+			var e interface{} = NewConnectionProtocolSuccessEvent(socketWorker)
+			socketWorker.client.EventsManager.CallEvent((*events_system.Event)(&e))
 		}
 		return connected
 	} else {
@@ -222,7 +224,7 @@ func (socketWorker *SocketWorker) SendData(data string, responseUUID uuid.NullUU
 	data = uuid.New().String() + data
 	if encrypt {
 		var err error
-		data, err = data_encryption.Encrypt(data, socketWorker.keyGenerator)
+		data, err = data_encryption.Encrypt(data, socketWorker.keysGenerator)
 		if err != nil {
 			golog.Error(socketWorker.GetName()+" - Unable to encrypt data\n", err)
 			return

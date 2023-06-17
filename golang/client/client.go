@@ -12,8 +12,8 @@ type Client struct {
 	MacAddress       string
 	SocketWorkerList []SocketWorker
 	EventsManager    events_system.EventsManager
-	exit             chan struct{}
 	count            int
+	exit             chan int
 }
 
 func NewClient(name string) Client {
@@ -26,14 +26,14 @@ func NewClient(name string) Client {
 		MacAddress:       macAddress,
 		SocketWorkerList: make([]SocketWorker, 0),
 		EventsManager:    events_system.NewEventsManager(),
-		exit:             make(chan struct{}),
+		exit:             make(chan int),
 		count:            0,
 	}
 }
 
 func (client *Client) AddSocketWorker(ip string, port int) SocketWorker {
 	client.count++
-	socketWorker := NewSocketWorker(client.count, *client, ip, port)
+	socketWorker := NewSocketWorker(client.count, client, ip, port)
 	client.SocketWorkerList = append(client.SocketWorkerList, socketWorker)
 	return socketWorker
 }
@@ -46,7 +46,7 @@ func (client *Client) RemoveSocketWorker(socketWorker SocketWorker) {
 		}
 	}
 	if len(client.SocketWorkerList) == 0 {
-		client.exit <- struct{}{}
+		client.exit <- 1
 	}
 }
 

@@ -32,7 +32,7 @@ func (threadedEventCaller *ThreadedEventCaller) Start(eventsManager EventsManage
 				copy(threadedEventCaller.eventsToCall, list)
 				threadedEventCaller.lock = false
 				for _, e := range list {
-					eventsManager.CallEvent0(e)
+					eventsManager.CallEvent0(&e)
 				}
 				threadedEventCaller.Sync()
 				threadedEventCaller.lock = true
@@ -43,7 +43,7 @@ func (threadedEventCaller *ThreadedEventCaller) Start(eventsManager EventsManage
 	}()
 }
 
-func (threadedEventCaller *ThreadedEventCaller) CallEvent(event Event) {
+func (threadedEventCaller *ThreadedEventCaller) CallEvent(event *Event) {
 	go func() {
 		threadedEventCaller.Sync()
 		threadedEventCaller.lock = true

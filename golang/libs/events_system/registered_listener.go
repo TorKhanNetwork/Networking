@@ -1,5 +1,7 @@
 package events_system
 
+import "reflect"
+
 type RegisteredListener struct {
 	listener      Listener
 	eventExecutor EventExecutor
@@ -12,9 +14,8 @@ func NewRegisteredListener(listener Listener, eventExecutor EventExecutor) Regis
 	}
 }
 
-func (registeredListener *RegisteredListener) CallEvent(event Event) {
-	var i interface{} = event
-	if c, ok := i.(Cancellable); !ok || !c.IsCancelled() {
+func (registeredListener *RegisteredListener) CallEvent(event *Event) {
+	if f := reflect.ValueOf(event).FieldByName("Cancel"); f == reflect.ValueOf(nil) || !f.Bool() {
 		registeredListener.eventExecutor(registeredListener.listener, event)
 	}
 }

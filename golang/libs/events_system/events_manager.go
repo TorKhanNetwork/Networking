@@ -35,16 +35,15 @@ func (eventsManager *EventsManager) RegisterListener(listener Listener) {
 	}
 }
 
-func (eventsManager *EventsManager) CallEvent(event Event) {
-	var i interface{} = event
-	if _, ok := i.(Cancellable); ok {
+func (eventsManager *EventsManager) CallEvent(event *Event) {
+	if f := reflect.ValueOf(*event).FieldByName("Cancel"); f != reflect.ValueOf(nil) {
 		eventsManager.threadedEventCaller.CallEvent(event)
 	} else {
 		eventsManager.CallEvent0(event)
 	}
 }
 
-func (eventsManager *EventsManager) CallEvent0(event Event) {
+func (eventsManager *EventsManager) CallEvent0(event *Event) {
 	if listeners := eventsManager.registeredListeners[reflect.TypeOf(event).Name()]; listeners != nil {
 		for _, l := range listeners {
 			l.CallEvent(event)
