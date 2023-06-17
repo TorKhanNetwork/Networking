@@ -1,0 +1,9 @@
+*.zip
+*.log
+.idea/
+java/out
+*.iml
+__pycache__/
+*.pyc
+*.jar
+!java/libs/BouncyCastle/*
