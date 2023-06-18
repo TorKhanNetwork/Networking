@@ -6,7 +6,7 @@ type Event interface {
 type Listener interface {
 }
 
-type EventExecutor func(Listener, Event)
+type EventExecutor func(Listener, Event) *Event
 
 type EventPriority int
 
