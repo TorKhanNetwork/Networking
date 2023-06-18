@@ -1,9 +1,9 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/TorkhanNetwork/Networking/golang/client"
+	"github.com/TorkhanNetwork/Networking/golang/response_system"
+	"github.com/google/uuid"
 	"github.com/kataras/golog"
 )
 
@@ -11,12 +11,22 @@ type SimpleListener struct {
 	client client.Client
 }
 
-func (l SimpleListener) OnCommand(e client.CommandReceivedEvent) {
-	golog.Debug(l.client.Name + " command : " + e.Command + " " + strings.Join(e.Args, " "))
+func (l SimpleListener) OnAuth(e client.ConnectionProtocolSuccessEvent) {
+	r := e.SocketWorker.SendData("?platform", uuid.Nil, true)
+	err := r.WaitReply(true, func(worker response_system.IResponseWorker, s string) {
+		golog.Debugf("askip sa plateforme c'est %s", s)
+	})
+	if err != nil {
+		golog.Errorf("%s", err)
+	}
+	golog.Debug("blou")
 }
 
 func (l SimpleListener) OnEncData(e client.EncryptedDataReceivedEvent) {
 	golog.Debug(l.client.Name + " enc data : " + e.DecryptedData)
+	if e.DecryptedData == "?platform" {
+		e.SocketWorker.SendData("Golang bebew", e.MsgUUID, true)
+	}
 }
 
 func (l SimpleListener) OnRaw(e client.RawDataReceivedEvent) {

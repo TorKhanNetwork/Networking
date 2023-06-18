@@ -3,6 +3,8 @@ package server
 import (
 	"net"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type ClientDisconnectEvent struct {
@@ -24,11 +26,12 @@ func NewClientSocketConnectEvent(connection *net.TCPConn) ClientSocketConnectEve
 
 type CommandReceivedEvent struct {
 	ServerWorker ServerWorker
+	MsgUUID      uuid.UUID
 	Command      string
 	Args         []string
 }
 
-func NewCommandReceivedEvent(serverWorker *ServerWorker, data string, prefix string, splitter string) CommandReceivedEvent {
+func NewCommandReceivedEvent(serverWorker *ServerWorker, data string, prefix string, splitter string, msgUUID uuid.UUID) CommandReceivedEvent {
 	splitted := strings.Split(data[len(prefix):], splitter)
 	args := make([]string, 0)
 	if len(splitted) >= 2 {
@@ -36,6 +39,7 @@ func NewCommandReceivedEvent(serverWorker *ServerWorker, data string, prefix str
 	}
 	return CommandReceivedEvent{
 		ServerWorker: *serverWorker,
+		MsgUUID:      msgUUID,
 		Command:      splitted[0],
 		Args:         args,
 	}
@@ -51,20 +55,22 @@ func NewConnectionProtocolSuccessEvent(serverWorker *ServerWorker) ConnectionPro
 
 type EncryptedDataReceivedEvent struct {
 	ServerWorker        ServerWorker
+	MsgUUID             uuid.UUID
 	Data, DecryptedData string
 }
 
-func NewEncryptedDataReceivedEvent(serverWorker *ServerWorker, data, decryptedData string) EncryptedDataReceivedEvent {
-	return EncryptedDataReceivedEvent{ServerWorker: *serverWorker, Data: data, DecryptedData: decryptedData}
+func NewEncryptedDataReceivedEvent(serverWorker *ServerWorker, data, decryptedData string, msgUUID uuid.UUID) EncryptedDataReceivedEvent {
+	return EncryptedDataReceivedEvent{ServerWorker: *serverWorker, MsgUUID: msgUUID, Data: data, DecryptedData: decryptedData}
 }
 
 type RawDataReceivedEvent struct {
 	ServerWorker ServerWorker
+	MsgUUID      uuid.UUID
 	Data         string
 }
 
-func NewRawDataReceivedEvent(serverWorker *ServerWorker, data string) RawDataReceivedEvent {
-	return RawDataReceivedEvent{ServerWorker: *serverWorker, Data: data}
+func NewRawDataReceivedEvent(serverWorker *ServerWorker, data string, msgUUID uuid.UUID) RawDataReceivedEvent {
+	return RawDataReceivedEvent{ServerWorker: *serverWorker, MsgUUID: msgUUID, Data: data}
 }
 
 type ServerWorkerBoundEvent struct {

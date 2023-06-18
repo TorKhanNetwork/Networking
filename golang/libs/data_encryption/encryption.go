@@ -35,7 +35,7 @@ func DecryptSecretKey(data string, keyGenerator *KeysGenerator) (err error) {
 	if err != nil {
 		return
 	}
-	keyGenerator.secretKeyIv = decryptedKey[:15]
+	keyGenerator.secretKeyIv = decryptedKey[:16]
 	keyGenerator.SecretKey = decryptedKey[16:]
 	return
 }

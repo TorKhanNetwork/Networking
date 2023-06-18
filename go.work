@@ -5,4 +5,5 @@ use (
 	./golang/server
 	./golang/libs/data_encryption
 	./golang/libs/events_system
+	./golang/libs/response_system
 )

@@ -1,6 +1,8 @@
 package events_system
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type RegisteredListener struct {
 	listener      Listener
@@ -15,7 +17,7 @@ func NewRegisteredListener(listener Listener, eventExecutor EventExecutor) Regis
 }
 
 func (registeredListener *RegisteredListener) CallEvent(event *Event) {
-	if f := reflect.ValueOf(event).FieldByName("Cancel"); f == reflect.ValueOf(nil) || !f.Bool() {
-		registeredListener.eventExecutor(registeredListener.listener, event)
+	if f := reflect.ValueOf(*event).FieldByName("Cancel"); f == reflect.ValueOf(nil) || !f.Bool() {
+		*event = *registeredListener.eventExecutor(registeredListener.listener, *event)
 	}
 }

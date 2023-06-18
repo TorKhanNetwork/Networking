@@ -2,15 +2,18 @@ package client
 
 import (
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type CommandReceivedEvent struct {
 	SocketWorker SocketWorker
+	MsgUUID      uuid.UUID
 	Command      string
 	Args         []string
 }
 
-func NewCommandReceivedEvent(socketWorker *SocketWorker, data string, prefix string, splitter string) CommandReceivedEvent {
+func NewCommandReceivedEvent(socketWorker *SocketWorker, data string, prefix string, splitter string, msgUUID uuid.UUID) CommandReceivedEvent {
 	splitted := strings.Split(data[len(prefix):], splitter)
 	args := make([]string, 0)
 	if len(splitted) >= 2 {
@@ -18,6 +21,7 @@ func NewCommandReceivedEvent(socketWorker *SocketWorker, data string, prefix str
 	}
 	return CommandReceivedEvent{
 		SocketWorker: *socketWorker,
+		MsgUUID:      msgUUID,
 		Command:      splitted[0],
 		Args:         args,
 	}
@@ -33,20 +37,22 @@ func NewConnectionProtocolSuccessEvent(socketWorker *SocketWorker) ConnectionPro
 
 type EncryptedDataReceivedEvent struct {
 	SocketWorker        SocketWorker
+	MsgUUID             uuid.UUID
 	Data, DecryptedData string
 }
 
-func NewEncryptedDataReceivedEvent(socketWorker *SocketWorker, data, decryptedData string) EncryptedDataReceivedEvent {
-	return EncryptedDataReceivedEvent{SocketWorker: *socketWorker, Data: data, DecryptedData: decryptedData}
+func NewEncryptedDataReceivedEvent(socketWorker *SocketWorker, data, decryptedData string, msgUUID uuid.UUID) EncryptedDataReceivedEvent {
+	return EncryptedDataReceivedEvent{SocketWorker: *socketWorker, MsgUUID: msgUUID, Data: data, DecryptedData: decryptedData}
 }
 
 type RawDataReceivedEvent struct {
 	SocketWorker SocketWorker
+	MsgUUID      uuid.UUID
 	Data         string
 }
 
-func NewRawDataReceivedEvent(socketWorker *SocketWorker, data string) RawDataReceivedEvent {
-	return RawDataReceivedEvent{SocketWorker: *socketWorker, Data: data}
+func NewRawDataReceivedEvent(socketWorker *SocketWorker, data string, msgUUID uuid.UUID) RawDataReceivedEvent {
+	return RawDataReceivedEvent{SocketWorker: *socketWorker, MsgUUID: msgUUID, Data: data}
 }
 
 type ServerDisconnectEvent struct {
