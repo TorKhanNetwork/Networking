@@ -1,9 +1,9 @@
 go 1.18
 
 use (
-	./golang/client
-	./golang/server
-	./golang/libs/data_encryption
-	./golang/libs/events_system
-	./golang/libs/response_system
+	./client
+	./server
+	./libs/data_encryption
+	./libs/events_system
+	./libs/response_system
 )
