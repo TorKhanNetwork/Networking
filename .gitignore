@@ -8,3 +8,4 @@ __pycache__/
 *.jar
 !java/libs/BouncyCastle/*
 .vscode/
+*.key

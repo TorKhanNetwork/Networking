@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/TorkhanNetwork/Networking/client"
 	"github.com/TorkhanNetwork/Networking/response_system"
 	"github.com/kataras/golog"
@@ -11,24 +13,24 @@ type SimpleListener struct {
 }
 
 func (l SimpleListener) OnAuth(e client.ConnectionProtocolSuccessEvent) {
-	r := e.SocketWorker.SendCommand("platform")
+	r := e.SocketWorker.SendCommand("platform", "test", "\"blou\"", `"blou2"`)
 	err := r.WaitReply(true, func(worker response_system.IResponseWorker, s string) {
 		golog.Debugf("askip sa plateforme c'est %s", s)
 	})
 	if err != nil {
 		golog.Warnf("%s", err)
 	}
-	golog.Debug("blou")
 }
 
 func (l SimpleListener) OnCommand(e client.CommandReceivedEvent) {
+	golog.Debugf("args: %s", strings.Join(e.Args, " | "))
 	if e.Command == "platform" {
-		e.SocketWorker.SendData("Golang bebew", e.MsgUUID, true, true)
+		e.SocketWorker.SendData("Golang bebew", e.MsgUUID, true)
 	}
 }
 
-func (l SimpleListener) OnClose(e client.ServerDisconnectEvent) {
-	golog.Debug(l.client.Name + " disconnection from " + e.SocketWorker.GetName())
+func (l SimpleListener) OnClose(e client.ServerSocketDisconnectEvent) {
+	golog.Debug(l.client.Name + " illegal disconnection from " + e.SocketWorker.GetName())
 }
 
 func main() {

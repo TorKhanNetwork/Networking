@@ -25,6 +25,14 @@ func NewClientSocketConnectEvent(connection *net.TCPConn) ClientSocketConnectEve
 	return ClientSocketConnectEvent{Connection: connection, Cancel: false}
 }
 
+type ClientSocketDisconnectEvent struct {
+	ServerWorker ServerWorker
+}
+
+func NewClientSocketDisconnectEvent(serverWorker *ServerWorker) ClientSocketDisconnectEvent {
+	return ClientSocketDisconnectEvent{ServerWorker: *serverWorker}
+}
+
 type CommandReceivedEvent struct {
 	ServerWorker ServerWorker
 	MsgUUID      uuid.UUID
@@ -36,9 +44,12 @@ func NewCommandReceivedEvent(serverWorker *ServerWorker, data string, prefix str
 	splitted := strings.SplitN(data[len(prefix):], " ", 2)
 	args := make([]string, 0)
 	r, _ := regexp.Compile(`"((\\")|[^"])+"`)
-	bArgs := r.FindAll([]byte(data), -1)
+	bArgs := r.FindAllString(data, -1)
 	for _, bArg := range bArgs {
-		args = append(args, string(bArg)[1:len(bArg)-1])
+		s := strings.ReplaceAll(string(bArg), `\"`, `"`)
+		if len(s) >= 2 && strings.HasPrefix(s, `"`) && strings.HasSuffix(s, `"`) {
+			args = append(args, s[1:len(s)-1])
+		}
 	}
 	return CommandReceivedEvent{
 		ServerWorker: *serverWorker,
@@ -54,26 +65,6 @@ type ConnectionProtocolSuccessEvent struct {
 
 func NewConnectionProtocolSuccessEvent(serverWorker *ServerWorker) ConnectionProtocolSuccessEvent {
 	return ConnectionProtocolSuccessEvent{ServerWorker: *serverWorker}
-}
-
-type EncryptedDataReceivedEvent struct {
-	ServerWorker        ServerWorker
-	MsgUUID             uuid.UUID
-	Data, DecryptedData string
-}
-
-func NewEncryptedDataReceivedEvent(serverWorker *ServerWorker, data, decryptedData string, msgUUID uuid.UUID) EncryptedDataReceivedEvent {
-	return EncryptedDataReceivedEvent{ServerWorker: *serverWorker, MsgUUID: msgUUID, Data: data, DecryptedData: decryptedData}
-}
-
-type RawDataReceivedEvent struct {
-	ServerWorker ServerWorker
-	MsgUUID      uuid.UUID
-	Data         string
-}
-
-func NewRawDataReceivedEvent(serverWorker *ServerWorker, data string, msgUUID uuid.UUID) RawDataReceivedEvent {
-	return RawDataReceivedEvent{ServerWorker: *serverWorker, MsgUUID: msgUUID, Data: data}
 }
 
 type ServerWorkerBoundEvent struct {

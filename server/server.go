@@ -5,9 +5,13 @@ import (
 
 	"github.com/TorkhanNetwork/Networking/data_encryption"
 	"github.com/TorkhanNetwork/Networking/events_system"
+	"github.com/kataras/golog"
 )
 
-const SERVER_VERSION = "1.0"
+const (
+	SERVER_VERSION = "1.0"
+	COMMAND_PREFIX = "!"
+)
 
 type Server struct {
 	Name           string
@@ -23,7 +27,11 @@ type Server struct {
 
 func NewServer(name string, port int) Server {
 	kg := data_encryption.NewGenerator()
-	kg.GenerateKeys(false, true)
+	ok := ReadAsyncKeys(&kg)
+	if !ok {
+		kg.GenerateKeys(false, true)
+		WriteAsyncKeys(kg)
+	}
 	return Server{
 		Name:           name,
 		socketListener: SocketListener{},
@@ -47,6 +55,7 @@ func (server *Server) HandleSocketConnection(connection *net.TCPConn) {
 	if !event.Cancel {
 		server.count++
 		serverWorker := NewServerWorker(server.count, server, connection)
+		golog.Infof("%s - New socket accepted from %s -> #%s", server.Name, connection.RemoteAddr().String(), serverWorker.Id)
 		event := NewServerWorkerBoundEvent(&serverWorker)
 		e = event
 		if !event.Cancel {

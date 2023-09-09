@@ -31,7 +31,7 @@ func DecryptSecretKey(data string, keyGenerator *KeysGenerator) (err error) {
 	if err != nil {
 		return
 	}
-	decryptedKey, err := rsa.DecryptPKCS1v15(rand.Reader, &keyGenerator.privateKey, cipherData)
+	decryptedKey, err := rsa.DecryptPKCS1v15(rand.Reader, &keyGenerator.PrivateKey, cipherData)
 	if err != nil {
 		return
 	}

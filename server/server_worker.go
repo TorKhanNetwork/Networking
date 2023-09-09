@@ -29,7 +29,7 @@ func NewServerWorker(id int, server *Server, connection *net.TCPConn) ServerWork
 	return ServerWorker{
 		Id:              id,
 		server:          server,
-		commandPrefix:   GenerateCommandPrefix(),
+		commandPrefix:   COMMAND_PREFIX,
 		connection:      connection,
 		responseManager: response_system.NewResponseManager(),
 	}
@@ -60,7 +60,7 @@ func (serverWorker *ServerWorker) DisconnectSocket() error {
 	if !serverWorker.connected {
 		return fmt.Errorf("%s - Socket isn't connected", serverWorker.GetName())
 	}
-	serverWorker.SendData("disconnect", uuid.Nil, serverWorker.authenticated, true)
+	serverWorker.SendData("disconnect", uuid.Nil, serverWorker.authenticated)
 	err := serverWorker.connection.Close()
 	if err != nil {
 		return err
@@ -87,7 +87,7 @@ func (serverWorker *ServerWorker) handleClientSocket() {
 			}
 		}
 	}
-	var e interface{} = NewClientDisconnectEvent(serverWorker)
+	var e interface{} = NewClientSocketDisconnectEvent(serverWorker)
 	serverWorker.server.EventsManager.CallEvent((*events_system.Event)(&e))
 }
 
@@ -125,18 +125,24 @@ func (serverWorker *ServerWorker) onDataReceived(data []string, encrypted bool) 
 		data[0] = data[0][36:]
 	}
 
-	if serverWorker.commandPrefix != "" && strings.HasPrefix(data[0], serverWorker.commandPrefix) {
-		serverWorker.onCommandReceived(data[0], msgUUID, encrypted)
-	} else {
-		golog.Debugf("%s - Data received (encrypted=%t, uuid=%s) : %s", serverWorker.GetName(), encrypted, msgUUID, data[0])
-	}
-
 	if serverWorker.connectionProtocol {
+		golog.Debugf("%s - Data received (encrypted=%t, uuid=%s) : %s", serverWorker.GetName(), encrypted, msgUUID, data[0])
 		if !serverWorker.onConnectionProtocolDataReceived(data[0]) {
 			golog.Errorf("%s - Unable to authenticate the client", serverWorker.GetName())
 			err := serverWorker.DisconnectSocket()
 			if err != nil {
 				golog.Errorf("%s - Unable to disconnect socket : %s", serverWorker.GetName(), err)
+			}
+		}
+	} else {
+		if serverWorker.commandPrefix != "" && strings.HasPrefix(data[0], serverWorker.commandPrefix) {
+			serverWorker.onCommandReceived(data[0], msgUUID, encrypted)
+		} else {
+			golog.Debugf("%s - Data received (encrypted=%t, uuid=%s) : %s", serverWorker.GetName(), encrypted, msgUUID, data[0])
+			if data[0] == "disconnect" {
+				serverWorker.StopWorker()
+				var e events_system.Event = NewClientDisconnectEvent(serverWorker)
+				serverWorker.server.EventsManager.CallEvent(&e)
 			}
 		}
 	}
@@ -157,7 +163,7 @@ func (serverWorker *ServerWorker) onConnectionProtocolDataReceived(data string) 
 	if strings.HasPrefix(data, "version:") {
 		split := strings.SplitN(data[8:], ".", 3)
 		correct := len(split) >= 2 && strings.Join(split[:2], ".") == strings.Join(strings.SplitN(SERVER_VERSION, ".", 3)[:2], ".")
-		serverWorker.SendData("version:"+strconv.FormatBool(correct), uuid.Nil, false, true)
+		serverWorker.SendData("version:"+strconv.FormatBool(correct), uuid.Nil, false)
 		if !correct {
 			return false
 		}
@@ -167,14 +173,14 @@ func (serverWorker *ServerWorker) onConnectionProtocolDataReceived(data string) 
 		if err != nil {
 			return false
 		}
-		serverWorker.SendData("publicKey:"+publicKey, uuid.Nil, false, true)
+		serverWorker.SendData("publicKey:"+publicKey, uuid.Nil, false)
 	} else if strings.HasPrefix(data, "secretKey:") {
 		err := data_encryption.DecryptSecretKey(data[10:], &serverWorker.server.keysGenerator)
 		connected := err == nil
 		if connected {
-			serverWorker.SendData("commandPrefix:"+serverWorker.commandPrefix, uuid.Nil, false, true)
+			serverWorker.SendData("commandPrefix:"+serverWorker.commandPrefix, uuid.Nil, true)
 		}
-		serverWorker.SendData("connected:"+strconv.FormatBool(connected), uuid.Nil, false, true)
+		serverWorker.SendData("connected:"+strconv.FormatBool(connected), uuid.Nil, true)
 		serverWorker.connectionProtocol = !connected
 		if connected {
 			var e interface{} = NewConnectionProtocolSuccessEvent(serverWorker)
@@ -187,11 +193,8 @@ func (serverWorker *ServerWorker) onConnectionProtocolDataReceived(data string) 
 	return true
 }
 
-func (serverWorker *ServerWorker) SendData(data string, responseUUID uuid.UUID, encrypt, raw bool) *response_system.Response {
+func (serverWorker *ServerWorker) SendData(data string, responseUUID uuid.UUID, encrypt bool) *response_system.Response {
 	rawData := data
-	if raw && responseUUID == uuid.Nil {
-		rawData = " " + data
-	}
 	response := response_system.NewResponse(serverWorker, responseUUID)
 	data = response.UUID.String() + data
 	if responseUUID != uuid.Nil {
@@ -222,5 +225,5 @@ func (serverWorker *ServerWorker) SendCommand(command string, args ...string) *r
 		data += " \"" + arg + "\""
 		golog.Debugf("%s -> %s", arg, data)
 	}
-	return serverWorker.SendData(data, uuid.Nil, true, false)
+	return serverWorker.SendData(data, uuid.Nil, true)
 }

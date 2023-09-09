@@ -8,7 +8,7 @@ import (
 )
 
 type IResponseWorker interface {
-	SendData(string, uuid.UUID, bool, bool) *Response
+	SendData(string, uuid.UUID, bool) *Response
 	SendCommand(command string, args ...string) *Response
 	GetResponseManager() ResponseManager
 }

@@ -20,12 +20,12 @@ func (socketListener *SocketListener) Start(server *Server) {
 	go func() {
 		c, err := net.ListenTCP("tcp", &net.TCPAddr{Port: server.port})
 		if err != nil {
-			golog.Error(server.Name+" - Unable to listen sockets\n", err)
+			golog.Errorf("%s - Unable to listen sockets : %s", server.Name, err)
 			return
 		}
 		socketListener.connection = c
 		socketListener.Alive = true
-		golog.Info(server.Name + " - Listening for clients connections")
+		golog.Infof("%s - Listening for clients connections", server.Name)
 		for {
 			select {
 			case <-socketListener.exit:
@@ -36,7 +36,6 @@ func (socketListener *SocketListener) Start(server *Server) {
 				if err != nil {
 					golog.Error("Unable to accept incoming connection")
 				} else {
-					golog.Debug(server.Name + " - New socket accepted from " + socket.RemoteAddr().String())
 					server.HandleSocketConnection(socket)
 				}
 			}

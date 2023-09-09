@@ -13,7 +13,7 @@ type KeysGenerator struct {
 	SecretKey    []byte
 	secretKeyIv  []byte
 	PublicKey    rsa.PublicKey
-	privateKey   rsa.PrivateKey
+	PrivateKey   rsa.PrivateKey
 }
 
 func NewGenerator() KeysGenerator {
@@ -42,10 +42,10 @@ func (keysGenerator *KeysGenerator) GenerateKeys(sync, async bool) {
 		if err != nil {
 			golog.Fatal("Unable to generate RSA keys\n", err)
 		}
-		publicKey := &privateKey.PublicKey
+		publicKey := privateKey.PublicKey
 
-		keysGenerator.privateKey = *privateKey
-		keysGenerator.PublicKey = *publicKey
+		keysGenerator.PrivateKey = *privateKey
+		keysGenerator.PublicKey = publicKey
 	}
 }
 
