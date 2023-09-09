@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	SERVER_VERSION = "1.0"
+	SERVER_VERSION = "1.0.0"
 	COMMAND_PREFIX = "!"
 )
 

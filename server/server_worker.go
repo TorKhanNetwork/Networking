@@ -162,7 +162,7 @@ func (serverWorker *ServerWorker) startConnectionProtocol() {
 func (serverWorker *ServerWorker) onConnectionProtocolDataReceived(data string) bool {
 	if strings.HasPrefix(data, "version:") {
 		split := strings.SplitN(data[8:], ".", 3)
-		correct := len(split) >= 2 && strings.Join(split[:2], ".") == strings.Join(strings.SplitN(SERVER_VERSION, ".", 3)[:2], ".")
+		correct := len(split) == 3 && strings.Join(split[:2], ".") == strings.Join(strings.SplitN(SERVER_VERSION, ".", 3)[:2], ".")
 		serverWorker.SendData("version:"+strconv.FormatBool(correct), uuid.Nil, false)
 		if !correct {
 			return false

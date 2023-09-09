@@ -5,7 +5,7 @@ import (
 	"github.com/kataras/golog"
 )
 
-const CLIENT_VERSION = "1.0"
+const CLIENT_VERSION = "1.0.0"
 
 type Client struct {
 	Name             string
