@@ -1,3 +1,3 @@
-module github.com/TorkhanNetwork/Networking/response_system
+module github.com/TorKhanNetwork/Networking/response_system
 
 go 1.18

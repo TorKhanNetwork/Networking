@@ -3,8 +3,8 @@ package main
 import (
 	"strings"
 
-	"github.com/TorkhanNetwork/Networking/client"
-	"github.com/TorkhanNetwork/Networking/response_system"
+	"github.com/TorKhanNetwork/Networking/client"
+	"github.com/TorKhanNetwork/Networking/response_system"
 	"github.com/kataras/golog"
 )
 
@@ -37,7 +37,7 @@ func main() {
 	golog.SetLevel("debug")
 	client := client.NewClient("Petit Client de test")
 	client.EventsManager.RegisterListener(SimpleListener{client: client})
-	worker := client.AddSocketWorker("192.168.1.22", 40000)
+	worker := client.AddSocketWorker("127.0.0.1", 40000)
 	worker.StartWorker()
 	client.JoinWorkers()
 }

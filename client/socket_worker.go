@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TorkhanNetwork/Networking/data_encryption"
-	"github.com/TorkhanNetwork/Networking/events_system"
-	"github.com/TorkhanNetwork/Networking/response_system"
+	"github.com/TorKhanNetwork/Networking/data_encryption"
+	"github.com/TorKhanNetwork/Networking/events_system"
+	"github.com/TorKhanNetwork/Networking/response_system"
 	"github.com/google/uuid"
 	"github.com/kataras/golog"
 )

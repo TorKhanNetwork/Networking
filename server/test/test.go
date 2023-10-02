@@ -3,8 +3,8 @@ package main
 import (
 	"strings"
 
-	"github.com/TorkhanNetwork/Networking/response_system"
-	"github.com/TorkhanNetwork/Networking/server"
+	"github.com/TorKhanNetwork/Networking/response_system"
+	"github.com/TorKhanNetwork/Networking/server"
 	"github.com/kataras/golog"
 )
 

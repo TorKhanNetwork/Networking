@@ -1,4 +1,4 @@
-module github.com/TorkhanNetwork/Networking/server
+module github.com/TorKhanNetwork/Networking/server
 
 go 1.18
 
