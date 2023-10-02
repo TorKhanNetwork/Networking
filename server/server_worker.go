@@ -219,11 +219,9 @@ func (serverWorker *ServerWorker) SendData(data string, responseUUID uuid.UUID, 
 
 func (serverWorker *ServerWorker) SendCommand(command string, args ...string) *response_system.Response {
 	data := serverWorker.commandPrefix + command
-	golog.Debugf("%s", data)
 	for _, arg := range args {
 		arg = strings.ReplaceAll(arg, "\"", "\\\"")
 		data += " \"" + arg + "\""
-		golog.Debugf("%s -> %s", arg, data)
 	}
 	return serverWorker.SendData(data, uuid.Nil, true)
 }
