@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/TorKhanNetwork/Networking/data_encryption"
-	"github.com/TorKhanNetwork/Networking/events_system"
-	"github.com/TorKhanNetwork/Networking/response_system"
+	"github.com/TorKhanNetwork/Networking/libs/data_encryption"
+	"github.com/TorKhanNetwork/Networking/libs/events_system"
+	"github.com/TorKhanNetwork/Networking/libs/response_system"
 	"github.com/google/uuid"
 	"github.com/kataras/golog"
 )

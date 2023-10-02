@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/TorKhanNetwork/Networking/data_encryption"
+	"github.com/TorKhanNetwork/Networking/libs/data_encryption"
 	"github.com/kataras/golog"
 )
 

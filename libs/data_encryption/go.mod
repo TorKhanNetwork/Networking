@@ -1,4 +1,4 @@
-module github.com/TorKhanNetwork/Networking/data_encryption
+module github.com/TorKhanNetwork/Networking/libs/data_encryption
 
 go 1.18
 

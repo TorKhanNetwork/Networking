@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	"github.com/TorKhanNetwork/Networking/response_system"
+	"github.com/TorKhanNetwork/Networking/libs/response_system"
 	"github.com/TorKhanNetwork/Networking/server"
 	"github.com/kataras/golog"
 )

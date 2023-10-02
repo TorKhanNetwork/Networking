@@ -3,8 +3,8 @@ package server
 import (
 	"net"
 
-	"github.com/TorKhanNetwork/Networking/data_encryption"
-	"github.com/TorKhanNetwork/Networking/events_system"
+	"github.com/TorKhanNetwork/Networking/libs/data_encryption"
+	"github.com/TorKhanNetwork/Networking/libs/events_system"
 	"github.com/kataras/golog"
 )
 

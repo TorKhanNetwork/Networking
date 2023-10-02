@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/TorKhanNetwork/Networking/client"
-	"github.com/TorKhanNetwork/Networking/response_system"
+	"github.com/TorKhanNetwork/Networking/libs/response_system"
 	"github.com/kataras/golog"
 )
 

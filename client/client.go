@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/TorKhanNetwork/Networking/events_system"
+	"github.com/TorKhanNetwork/Networking/libs/events_system"
 	"github.com/kataras/golog"
 )
 
